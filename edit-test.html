@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label, input, select, textarea, button { display: block; margin-bottom: 10px; }
+    input, select, textarea { width: 400px; padding: 8px; font-size: 16px; }
+    button { padding: 8px 14px; font-size: 14px; margin-top: 5px; }
+    .section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 20px;">
+    <a href="index.html" style="margin-right: 20px;">Test Runner</a>
+    <a href="saved-tests.html">Saved Tests</a>
+  </div>
+
+  <h2>Edit Test</h2>
+
+  <label for="appName">App Name:</label>
+  <input type="text" id="appName" />
+
+  <div class="section">
+    <h3>AI Task Instructions</h3>
+    <div id="taskContainer"></div>
+    <button onclick="addTask()">+ Add Task</button>
+  </div>
+
+  <div class="section">
+    <h3>Element Actions</h3>
+    <div id="stepContainer"></div>
+    <button onclick="addStep()">+ Add Action</button>
+  </div>
+
+  <div class="section">
+    <button onclick="runTest()">Run</button>
+    <button onclick="saveChanges()">Save Changes</button>
+    <div id="statusIcons" style="margin-top: 10px;">
+    <img id="loadingSpinner" src="iconFiles/gif_runingSpinner.gif" style="display:none; width:40px;" />
+    <img id="successIcon" src="iconFiles/v_completeIcon.jpg" style="display:none; width:40px;" />
+  </div>
+
+    <pre id="jsonPreview"></pre>
+  </div>
+
+  <script>
+    let taskCount = 0;
+    let stepCount = 0;
+
+    function addTask(value = "") {runTest
+      const container = document.getElementById('taskContainer');
+      const id = `task_${taskCount++}`;
+      const div = document.createElement('div');
+      div.innerHTML = `<textarea id="${id}" rows="2">${value}</textarea>`;
+      container.appendChild(div);
+    }
+
+    function addStep(view = "", type = "Button", input = "") {
+      const container = document.getElementById('stepContainer');
+      const index = stepCount++;
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <label>Step ${index + 1}</label>
+        <select id="type_${index}" onchange="toggleInput(${index})">
+          <option value="Button"${type === "Button" ? " selected" : ""}>Click Button</option>
+          <option value="Input"${type === "Input" ? " selected" : ""}>Input field</option>
+        </select>
+        <input id="step_${index}" value="${view}" />
+        <input id="input_${index}" value="${input}" style="${type === 'Input' ? '' : 'display:none;'}" />
+      `;
+      container.appendChild(div);
+    }
+
+    function toggleInput(index) {
+      const type = document.getElementById(`type_${index}`).value;
+      const inputEl = document.getElementById(`input_${index}`);
+      inputEl.style.display = (type === "Input") ? "inline-block" : "none";
+    }
+
+    function loadTestFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name");
+      if (!name) return alert("❌ No test name provided.");
+      const raw = localStorage.getItem("test_" + name);
+      if (!raw) return alert("❌ Test not found in storage.");
+      
+    try {
+    const data = JSON.parse(raw);
+    console.log("Parsed test:", data);
+    document.getElementById("appName").value = data.RuningApp || "";
+
+    if (Array.isArray(data.AiTasksList)) {
+        data.AiTasksList.forEach(task => addTask(task.TaskStep));
+    }
+
+    if (Array.isArray(data.TestInputSteps)) {
+        data.TestInputSteps.forEach(step => {
+        const type = step.InputText ? "Input" : "Button";
+        addStep(step.ElementView, type, step.InputText || "");
+        });
+    }
+
+    } catch (err) {
+    console.error("Parse error:", err);
+    alert("❌ Failed to parse test:\n" + err.message);
+    }
+
+    }   
+
+   function saveChanges() {
+      console.log("🔁 saveChanges triggered");
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get("name");
+  if (!name) return alert("❌ No test name to update.");
+
+  const appName = document.getElementById('appName').value;
+
+  const tasks = [];
+  for (let i = 0; i < taskCount; i++) {
+    const el = document.getElementById(`task_${i}`);
+    if (el && el.value) tasks.push({ TaskStep: el.value });
+  }
+
+  const steps = [];
+  for (let i = 0; i < stepCount; i++) {
+    const typeEl = document.getElementById(`type_${i}`);
+    const viewEl = document.getElementById(`step_${i}`);
+    const inputEl = document.getElementById(`input_${i}`);
+    if (typeEl && viewEl && viewEl.value) {
+      const step = { ElementView: viewEl.value };
+      if (typeEl.value === "Input") step.InputText = inputEl.value;
+      steps.push(step);
+    }
+  }
+
+  const finalData = {
+    RuningApp: appName,
+    AiTasksList: tasks,
+    TestInputSteps: steps
+  };
+
+  localStorage.setItem(`test_${name}`, JSON.stringify(finalData));
+  alert("✅ Test updated.");
+}
+
+function runTest() {
+  const appName = document.getElementById('appName').value;
+
+  const tasks = [];
+  for (let i = 0; i < taskCount; i++) {
+    const el = document.getElementById(`task_${i}`);
+    if (el && el.value) tasks.push({ TaskStep: el.value });
+  }
+
+  const steps = [];
+  for (let i = 0; i < stepCount; i++) {
+    const typeEl = document.getElementById(`type_${i}`);
+    const viewEl = document.getElementById(`step_${i}`);
+    const inputEl = document.getElementById(`input_${i}`);
+    if (typeEl && viewEl && viewEl.value) {
+      const step = { ElementView: viewEl.value };
+      if (typeEl.value === "Input") step.InputText = inputEl.value;
+      steps.push(step);
+    }
+  }
+
+  const finalData = {
+    RuningApp: appName,
+    AiTasksList: tasks,
+    TestInputSteps: steps
+  };
+
+  const runBtn = document.querySelector("button[onclick='runTest()']");
+  const active = document.activeElement;
+
+  runBtn.disabled = true;
+  document.getElementById('loadingSpinner').style.display = 'inline-block';
+  document.getElementById('successIcon').style.display = 'none';
+
+  setTimeout(() => {
+    fetch("http://localhost:5109/api/AiTaskSteps/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(finalData)
+    })
+    .then(res => res.text())
+    .then(text => {
+      document.getElementById('successIcon').style.display = 'inline-block';
+      console.log("✅ Response:", text);
+    })
+    .catch(err => {
+      console.error("❌ Error:", err.message);
+    })
+    .finally(() => {
+      if (active && typeof active.focus === "function") active.focus();
+      document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
+      runBtn.disabled = false;
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
+  }, 100); // Small delay allows DOM/UI to update before fetch
+}
+
+
+
+   
+
+    window.onload = loadTestFromUrl;
+  </script>
+</body>
+</html>

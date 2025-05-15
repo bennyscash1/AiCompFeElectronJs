@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saved Tests</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .test-entry {
+      margin-bottom: 10px;
+    }
+    .test-entry button {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 20px;">
+    <a href="index.html">Test Runner</a>
+    <a href="saved-tests.html" style="margin-left: 20px; font-weight: bold; text-decoration: underline;">Saved Tests</a>
+  </div>
+
+  <h2>Saved Tests</h2>
+  <div id="testList">
+    <!-- Saved tests will appear here -->
+  </div>
+
+  <script>
+    function getSavedTests() {
+      const listDiv = document.getElementById("testList");
+      listDiv.innerHTML = "";
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("test_")) {
+          const testName = key.replace("test_", "");
+         
+      const wrapper = document.createElement("div");
+      wrapper.className = "test-entry";
+
+      // Load button
+      const btn = document.createElement("button");
+      btn.textContent = testName;
+      btn.onclick = () => {
+        window.location.href = `edit-test.html?name=${encodeURIComponent(testName)}`;
+      };
+
+      // Delete button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "❌";
+      deleteBtn.style.marginLeft = "10px";
+      deleteBtn.onclick = () => {
+        if (confirm(`Are you sure you want to delete "${testName}"?`)) {
+          localStorage.removeItem(key);
+          wrapper.remove();
+        }
+      };
+
+      wrapper.appendChild(btn);
+      wrapper.appendChild(deleteBtn);
+      listDiv.appendChild(wrapper);
+
+
+        }
+      }
+
+      if (listDiv.innerHTML === "") {
+        listDiv.innerHTML = "<p>🔍 No saved tests found.</p>";
+      }
+    }
+
+    window.onload = getSavedTests;
+
+  </script>
+</body>
+</html>

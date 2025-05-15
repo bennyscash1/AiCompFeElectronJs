@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Runner</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label, input, select, textarea, button { display: block; margin-bottom: 10px; }
+    input, select, textarea { width: 400px; padding: 8px; font-size: 16px; }
+    button { padding: 8px 14px; font-size: 14px; margin-top: 5px; }
+    .section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
+    .page-context { font-size: 14px; color: gray; margin-top: -10px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 20px;">
+    <a href="index.html" style="margin-right: 20px; font-weight: bold; text-decoration: underline;">Test Runner</a>
+    <a href="saved-tests.html">Saved Tests</a>
+  </div>
+
+  <h2 id="pageTitle">AI Automation Runner</h2>
+  <div id="pageMode" class="page-context">New test mode</div>
+
+  <label for="appName">App Name:</label>
+  <input type="text" id="appName" placeholder="e.g., Chrome" />
+
+  <div class="section">
+    <h3>AI Task Instructions</h3>
+    <div id="taskContainer"></div>
+    <button onclick="addTask()">+ Add Task</button>
+  </div>
+
+  <div class="section">
+    <h3>Element Actions</h3>
+    <div id="stepContainer"></div>
+    <button onclick="addStep()">+ Add Action (Button/Input)</button>
+  </div>
+
+  <div class="section">
+    <button id="runButton" onclick="submitAll()">Run</button>
+    <button id="saveTestBtn" onclick="saveTest()">Save Test</button>
+    <button onclick="saveChanges()">Save Changes</button>
+
+    <div id="statusIcons" style="margin-top: 10px;">
+      <img id="loadingSpinner" src="iconFiles/gif_runingSpinner.gif" style="display:none; width:40px;" />
+      <img id="successIcon" src="iconFiles/v_completeIcon.jpg" style="display:none; width:40px;" />
+    </div>
+    <pre id="jsonPreview"></pre>
+  </div>
+
+  <div id="saveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:8px; width:300px;">
+      <h3>Save Test</h3>
+      <input id="saveTestName" placeholder="Enter test name" style="width:100%; padding:8px;" />
+      <div style="margin-top: 10px; text-align:right;">
+        <button onclick="closeSaveModal()">Cancel</button>
+        <button onclick="confirmSave()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isRunning = false;
+    let controller = null;
+    let taskCount = 0;
+    let stepCount = 0;
+
+    function saveTest() {
+      document.getElementById("saveModal").style.display = "flex";
+    }
+    function closeSaveModal() {
+      document.getElementById("saveModal").style.display = "none";
+    }
+
+    function confirmSave() {
+      const testName = document.getElementById("saveTestName").value.trim();
+      if (!testName) {
+        alert("⚠️ Please enter a test name.");
+        return;
+      }
+
+      const finalData = collectTestData();
+      localStorage.setItem(`test_${testName}`, JSON.stringify(finalData));
+      alert(`✅ Test saved as "${testName}"`);
+      closeSaveModal();
+    }
+
+    function addTask() {
+      const container = document.getElementById('taskContainer');
+      const id = `task_${taskCount++}`;
+      const div = document.createElement('div');
+      div.setAttribute("id", `${id}_wrap`);
+      div.innerHTML = `
+        <textarea id="${id}" rows="2" placeholder="Task instruction..."></textarea>
+        <button onclick="removeElement('${id}_wrap')">Remove</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addStep() {
+      const container = document.getElementById('stepContainer');
+      const id = `step_${stepCount}`;
+      const inputId = `input_${stepCount}`;
+      const wrapId = `stepWrap_${stepCount}`;
+      const div = document.createElement('div');
+      div.setAttribute("id", wrapId);
+      div.innerHTML = `
+        <label>Step ${stepCount + 1}</label>
+        <select id="type_${stepCount}" onchange="toggleInputField(${stepCount})">
+          <option value="Button">Click Button</option>
+          <option value="Input">Input field</option>
+        </select>
+        <input type="text" id="${id}" placeholder="Element View (e.g., 'Continue button')" />
+        <input type="text" id="${inputId}" placeholder="Input Text (For Input only)" />
+        <button onclick="removeElement('${wrapId}')">Remove</button>
+      `;
+      container.appendChild(div);
+      stepCount++;
+    }
+
+    function toggleInputField(stepIndex) {
+      const type = document.getElementById(`type_${stepIndex}`).value;
+      const inputText = document.getElementById(`input_${stepIndex}`);
+      const elementView = document.getElementById(`step_${stepIndex}`);
+      if (type === "Input") {
+        inputText.style.display = "inline-block";
+        elementView.placeholder = "Element View (e.g., 'Search input')";
+      } else {
+        inputText.style.display = "none";
+        elementView.placeholder = "Element View (e.g., 'Continue button')";
+      }
+    }
+
+    function removeElement(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function collectTestData() {
+      const appName = document.getElementById('appName').value;
+      const tasks = [];
+      for (let i = 0; i < taskCount; i++) {
+        const el = document.getElementById(`task_${i}`);
+        if (el && el.value) tasks.push({ TaskStep: el.value });
+      }
+      const steps = [];
+      for (let i = 0; i < stepCount; i++) {
+        const typeEl = document.getElementById(`type_${i}`);
+        const viewEl = document.getElementById(`step_${i}`);
+        const inputEl = document.getElementById(`input_${i}`);
+        if (typeEl && viewEl && viewEl.value) {
+          const step = { ElementView: viewEl.value };
+          if (typeEl.value === "Input") step.InputText = inputEl.value;
+          steps.push(step);
+        }
+      }
+      return {
+        RuningApp: appName,
+        AiTasksList: tasks,
+        TestInputSteps: steps
+      };
+    }
+const active = document.activeElement;
+  function submitAll() {
+  const runBtn = document.getElementById('runButton');
+  if (isRunning) {
+    controller?.abort();
+    runBtn.textContent = "Run";
+    isRunning = false;
+    return;
+  }
+
+  isRunning = true;
+  runBtn.textContent = "Cancel";
+  document.getElementById('loadingSpinner').style.display = 'inline-block';
+  document.getElementById('successIcon').style.display = 'none';
+
+  // Allow UI to update before proceeding
+  setTimeout(() => {
+    const finalData = collectTestData();
+    controller = new AbortController();
+
+    fetch("http://localhost:5109/api/AiTaskSteps/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(finalData),
+      signal: controller.signal
+    })
+    .then(res => res.text())
+    .then(text => {
+      alert("✅ Response:\n" + text);
+      document.getElementById('successIcon').style.display = 'inline-block';
+    })
+    .catch(err => alert("❌ Error: " + err.message))
+    .finally(() => {
+      if (active && typeof active.focus === 'function') active.focus();
+      document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
+      isRunning = false;
+      runBtn.textContent = "Run";
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
+
+
+    document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
+  }, 100); // This short delay allows the UI to update before blocking begins
+}
+
+
+    function saveChanges() {
+      const testName = localStorage.getItem("last_loaded_test");
+      if (!testName) {
+        alert("⚠️ No test loaded to update.");
+        return;
+      }
+      const updatedData = collectTestData();
+      localStorage.setItem(`test_${testName}`, JSON.stringify(updatedData));
+      alert(`✅ Changes saved to "${testName}"`);
+    }
+
+    window.onload = () => {
+      const params = new URLSearchParams(window.location.search);
+      const testName = params.get("name") || localStorage.getItem("load_test");
+      if (!testName) return;
+
+      const raw = localStorage.getItem(`test_${testName}`);
+      if (!raw) return;
+
+      try {
+        const data = JSON.parse(raw);
+        document.getElementById("appName").value = data.RuningApp || "";
+        const header = document.getElementById("pageTitle");
+        if (header) header.textContent = `Editing Test: ${testName}`;
+        const saveBtn = document.getElementById("saveTestBtn");
+        if (saveBtn) saveBtn.textContent = "Update Test";
+        const modeLabel = document.getElementById("pageMode");
+        if (modeLabel) modeLabel.textContent = "Edit mode";
+
+        if (Array.isArray(data.AiTasksList)) {
+          data.AiTasksList.forEach(task => {
+            addTask();
+            const el = document.getElementById(`task_${taskCount - 1}`);
+            if (el) el.value = task.TaskStep;
+          });
+        }
+        if (Array.isArray(data.TestInputSteps)) {
+          data.TestInputSteps.forEach(step => {
+            addStep();
+            const index = stepCount - 1;
+            const viewEl = document.getElementById(`step_${index}`);
+            const inputEl = document.getElementById(`input_${index}`);
+            const typeEl = document.getElementById(`type_${index}`);
+            viewEl.value = step.ElementView;
+            if (step.InputText) {
+              typeEl.value = "Input";
+              toggleInputField(index);
+              inputEl.value = step.InputText;
+            }
+          });
+        }
+        localStorage.setItem("last_loaded_test", testName);
+        localStorage.removeItem("load_test");
+      } catch (err) {
+        alert("❗ Failed to load test.");
+      }
+    }
+  </script>
+</body>
+</html>
