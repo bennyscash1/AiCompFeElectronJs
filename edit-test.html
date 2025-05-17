@@ -121,7 +121,8 @@
   </div>
 
   <div class="section">
-    <button class="primary" onclick="runTest()">Run</button>
+    <button class="primary" onclick="runTest()" id="runBtn">Run</button>
+    <button class="primary" onclick="cancelRun()" id="cancelBtn" style="display:none;">Cancel</button>
     <button class="secondary" onclick="saveChanges()">Save Changes</button>
     <div id="statusIcons">
       <img id="loadingSpinner" src="iconFiles/gif_runingSpinner.gif" style="display:none; width:40px;" />
@@ -130,9 +131,13 @@
     <pre id="jsonPreview"></pre>
   </div>
 
+
+
+
   <script>
     let taskCount = 0;
     let stepCount = 0;
+    let controller;
 
     function addTask(value = "") {
       const container = document.getElementById('taskContainer');
@@ -235,56 +240,71 @@
       alert("✅ Test updated.");
     }
 
-    function runTest() {
-      const appName = document.getElementById('appName').value;
-      const tasks = [];
-      for (let i = 0; i < taskCount; i++) {
-        const el = document.getElementById(`task_${i}`);
-        if (el && el.value) tasks.push({ TaskStep: el.value });
-      }
-      const steps = [];
-      for (let i = 0; i < stepCount; i++) {
-        const typeEl = document.getElementById(`type_${i}`);
-        const viewEl = document.getElementById(`step_${i}`);
-        const inputEl = document.getElementById(`input_${i}`);
-        if (typeEl && viewEl && viewEl.value) {
-          const step = { ElementView: viewEl.value };
-          if (typeEl.value === "Input") step.InputText = inputEl.value;
-          steps.push(step);
-        }
-      }
-      const finalData = {
-        RuningApp: appName,
-        AiTasksList: tasks,
-        TestInputSteps: steps
-      };
-      const runBtn = document.querySelector("button[onclick='runTest()']");
-      const active = document.activeElement;
-      runBtn.disabled = true;
-      document.getElementById('loadingSpinner').style.display = 'inline-block';
-      document.getElementById('successIcon').style.display = 'none';
-      setTimeout(() => {
-        fetch("http://localhost:5109/api/AiTaskSteps/run", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(finalData)
-        })
-        .then(res => res.text())
-        .then(text => {
-          document.getElementById('successIcon').style.display = 'inline-block';
-          console.log("✅ Response:", text);
-        })
-        .catch(err => {
-          console.error("❌ Error:", err.message);
-        })
-        .finally(() => {
-          if (active && typeof active.focus === "function") active.focus();
-          document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
-          runBtn.disabled = false;
-          document.getElementById('loadingSpinner').style.display = 'none';
-        });
-      }, 100);
+function runTest() {
+  const appName = document.getElementById('appName').value;
+  const tasks = [];
+  for (let i = 0; i < taskCount; i++) {
+    const el = document.getElementById(`task_${i}`);
+    if (el && el.value) tasks.push({ TaskStep: el.value });
+  }
+  const steps = [];
+  for (let i = 0; i < stepCount; i++) {
+    const typeEl = document.getElementById(`type_${i}`);
+    const viewEl = document.getElementById(`step_${i}`);
+    const inputEl = document.getElementById(`input_${i}`);
+    if (typeEl && viewEl && viewEl.value) {
+      const step = { ElementView: viewEl.value };
+      if (typeEl.value === "Input") step.InputText = inputEl.value;
+      steps.push(step);
     }
+  }
+
+  const finalData = {
+    RuningApp: appName,
+    AiTasksList: tasks,
+    TestInputSteps: steps
+  };
+
+  controller = new AbortController();
+  document.getElementById("runBtn").style.display = "none";
+  document.getElementById("cancelBtn").style.display = "inline-block";
+  document.getElementById("loadingSpinner").style.display = "inline-block";
+  document.getElementById("successIcon").style.display = "none";
+
+  fetch("http://localhost:5109/api/AiTaskSteps/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(finalData),
+    signal: controller.signal
+  })
+    .then(res => res.text())
+    .then(text => {
+      document.getElementById("successIcon").style.display = "inline-block";
+      console.log("✅ Response:", text);
+    })
+    .catch(err => {
+      if (err.name === "AbortError") {
+        alert("❌ Request cancelled.");
+      } else {
+        console.error("❌ Error:", err.message);
+      }
+    })
+    .finally(() => {
+      document.getElementById("runBtn").style.display = "inline-block";
+      document.getElementById("cancelBtn").style.display = "none";
+      document.getElementById("loadingSpinner").style.display = "none";
+      document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
+    });
+}
+
+
+  function cancelRun() {
+    if (controller) {
+      controller.abort();
+    }
+  }
+
+
 
     window.onload = loadTestFromUrl;
   </script>
