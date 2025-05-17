@@ -156,6 +156,7 @@ button.danger:hover {
 
   <label for="appName">App Name:</label>
   <input type="text" id="appName" placeholder="e.g., Chrome" />
+  <button class="secondary" onclick="getDeviceAndAppInfo()">Get Device ID & App Name</button>
 
   <div class="section">
     <h3>AI Task Instructions</h3>
@@ -404,6 +405,25 @@ const active = document.activeElement;
         alert("❗ Failed to load test.");
       }
     }
+
+    function getDeviceAndAppInfo() {
+    fetch("https://localhost:7012/api/GetAppAndDeviceName/run")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch device info");
+        return res.json();
+      })
+      .then(data => {
+        if (data.message) {
+          alert("📱 " + data.message);
+        } else {
+          alert("⚠️ No message found in response");
+        }
+      })
+      .catch(err => {
+        alert("❌ Error: " + err.message);
+      });
+  }
+
   </script>
 </body>
 </html>
