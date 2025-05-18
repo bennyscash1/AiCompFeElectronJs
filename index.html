@@ -177,6 +177,8 @@ button.danger:hover {
     <div id="statusIcons" style="margin-top: 10px;">
       <img id="loadingSpinner" src="iconFiles/gif_runingSpinner.gif" style="display:none; width:40px;" />
       <img id="successIcon" src="iconFiles/v_completeIcon.jpg" style="display:none; width:40px;" />
+      <img id="failureIcon" src="iconFiles/filedIcon.png" style="display:none; width:40px;" />
+
     </div>
     <pre id="jsonPreview"></pre>
   </div>
@@ -315,31 +317,40 @@ const active = document.activeElement;
   runBtn.textContent = "Cancel";
   document.getElementById('loadingSpinner').style.display = 'inline-block';
   document.getElementById('successIcon').style.display = 'none';
+  document.getElementById('failureIcon').style.display = 'none';
+
 
   // Allow UI to update before proceeding
   setTimeout(() => {
     const finalData = collectTestData();
     controller = new AbortController();
 
-    fetch("http://localhost:5109/api/AiTaskSteps/run", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(finalData),
-      signal: controller.signal
-    })
-    .then(res => res.text())
-    .then(text => {
-      alert("✅ Response:\n" + text);
-      document.getElementById('successIcon').style.display = 'inline-block';
-    })
-    .catch(err => alert("❌ Error: " + err.message))
-    .finally(() => {
-      if (active && typeof active.focus === 'function') active.focus();
-      document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
-      isRunning = false;
-      runBtn.textContent = "Run";
-      document.getElementById('loadingSpinner').style.display = 'none';
-    });
+   fetch("http://localhost:5109/api/AiTaskSteps/run", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(finalData),
+  signal: controller.signal
+})
+.then(async res => {
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`API failed with status ${res.status}\n\n${text}`);
+  }
+  alert("✅ Response:\n" + text);
+  document.getElementById('successIcon').style.display = 'inline-block';
+})
+.catch(err => {
+  alert("❌ Error: " + err.message);
+  document.getElementById('failureIcon').style.display = 'inline-block';
+})
+.finally(() => {
+  if (active && typeof active.focus === 'function') active.focus();
+  document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
+  isRunning = false;
+  runBtn.textContent = "Run";
+  document.getElementById('loadingSpinner').style.display = 'none';
+});
+
 
 
     document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
