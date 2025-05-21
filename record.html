@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Record & Play</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 40px;
+      background: linear-gradient(135deg, #e6f0ff, #d6ecff);
+      color: #0b2545;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1.5px solid #aad4ff;
+    }
+    button {
+      padding: 10px 16px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button.primary {
+      background-color: #154c79;
+      color: white;
+    }
+    button.secondary {
+      background-color: #f48225;
+      color: white;
+    }
+    #loader {
+      display: none;
+      margin-top: 20px;
+    }
+    #loader img {
+      width: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📹 Record & Play</h2>
+  <a href="index.html">← Back to Home</a>
+
+  <label for="runApp">Running App Name</label>
+  <input type="text" id="runApp" placeholder="e.g., chrome" />
+
+  <label for="recordName">Recording Case Name</label>
+  <input type="text" id="recordName" placeholder="e.g., chrome4" />
+
+  <div>
+    <button id="startBtn" class="primary" onclick="startRecording()">Start Recording</button>
+    <button id="stopBtn" class="secondary" onclick="stopRecording()" disabled>Stop Recording</button>
+    <button id="saveRecordingBtn" class="primary" onclick="goToSavePage()" style="display: none; margin-left: 10px;">💾 Save This Recording</button>
+  </div>
+
+  <div id="loader"><img src="iconFiles/gif_runingSpinner.gif" alt="Loading..." /></div>
+
+  <br><br>
+  <a href="saved-recordings.html">🎥 View Saved Recordings</a>
+
+  <script>
+    let recordData = null;
+
+    function startRecording() {
+      const runApp = document.getElementById('runApp').value.trim();
+      const recordName = document.getElementById('recordName').value.trim();
+
+      if (!runApp || !recordName) {
+        alert("⚠️ Please enter both values.");
+        return;
+      }
+
+      recordData = {
+        runingApp: runApp,
+        RecordFileName: recordName
+      };
+
+      document.getElementById("loader").style.display = "block";
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+      document.getElementById("saveRecordingBtn").style.display = "none";
+
+      fetch("https://localhost:7012/api/StartRecording/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(recordData)
+      })
+      .then(res => res.text())
+      .then(msg => alert("✅ " + msg))
+      .catch(err => alert("❌ " + err.message));
+    }
+
+    function stopRecording() {
+      if (!recordData) return;
+
+      fetch("https://localhost:7012/api/StopRecording/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(recordData)
+      })
+      .then(res => res.text())
+      .then(msg => alert("✅ " + msg))
+      .catch(err => alert("❌ " + err.message))
+      .finally(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("startBtn").disabled = false;
+        document.getElementById("stopBtn").disabled = true;
+
+        // Show the Save button
+        if (recordData) {
+          document.getElementById("saveRecordingBtn").style.display = "inline-block";
+        }
+      });
+    }
+
+    function goToSavePage() {
+      if (!recordData) {
+        alert("❌ Nothing to save.");
+        return;
+      }
+
+      const url = `save-record.html?runApp=${encodeURIComponent(recordData.runingApp)}&recordName=${encodeURIComponent(recordData.RecordFileName)}`;
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>
