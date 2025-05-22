@@ -21,6 +21,41 @@
 }
 
 
+#navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 70px;
+  width: 100%;
+  background: linear-gradient(135deg, #e6f0ff, #d6ecff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 10000;
+}
+
+#navbar a {
+  font-weight: bold;
+  color: #154c79;
+  margin-right: 20px;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+#navbar a:hover {
+  text-decoration: underline;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+body {
+  padding-top: 100px; /* Add padding to prevent content from hiding behind navbar */
+}
 
 
   a {
@@ -157,15 +192,15 @@ button.danger:hover {
 </style>
 
 </head>
-<body>
-    <img src="iconFiles/LogoIcon.jpg" id="logoImage" alt="Logo" />
-    
-  <div style="margin-bottom: 20px;">
-    <a href="index.html" style="margin-right: 20px; font-weight: bold; text-decoration: underline;">Test Runner</a>
+<div id="navbar">
+  <div class="nav-left">
+    <a href="index.html">Test Runner</a>
     <a href="saved-tests.html">Saved Tests</a>
-    <a href="record.html" style="margin-left: 20px;">Record & Play</a>
-
+    <a href="record.html">Record & Play</a>
   </div>
+  <img src="iconFiles/LogoIcon.jpg" id="logoImage" alt="Logo" />
+</div>
+
 
   <h2 id="pageTitle">AI Automation Runner</h2>
   <div id="pageMode" class="page-context">New test mode</div>
