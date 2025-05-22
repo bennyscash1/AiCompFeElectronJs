@@ -1,328 +1,360 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Record & Play</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 40px;
-      padding-top: 100px;
-      background: linear-gradient(135deg, #e6f0ff, #d6ecff);
-      color: #0b2545;
-    }
-    #navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: linear-gradient(135deg, #e6f0ff, #d6ecff);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 40px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      z-index: 10000;
-    }
-    #navbar a {
-      font-weight: bold;
-      color: #154c79;
-      margin-right: 20px;
-      font-size: 16px;
-      text-decoration: none;
-    }
-    #navbar a:hover {
-      text-decoration: underline;
-    }
-    .nav-left {
-      display: flex;
-      align-items: center;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 20px;
-    }
-    input[type="text"] {
-      width: 100%;
-      max-width: 400px;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1.5px solid #aad4ff;
-    }
-    button {
-      padding: 10px 16px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    button.primary {
-      background-color: #154c79;
-      color: white;
-    }
-    button.secondary {
-      background-color: #f48225;
-      color: white;
-    }
-    .test-entry {
-      margin-top: 10px;
-      padding: 8px 12px;
-      background-color: #ffffff;
-      border-radius: 20px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .test-entry span {
-      font-weight: 500;
-    }
-    .test-icon-btn {
-      background-color: #fdd;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .test-icon-btn.run {
-      background-color: #d1e7dd;
-      color: #0f5132;
-    }
-    #loaderIcon {
-      display: none;
-      width: 24px;
-      margin-top: 20px;
-    }
-    #deleteModal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 10001;
-    }
-    #logoImage {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 320px;     /* Increased from 100px */
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+    <meta charset="UTF-8" />
+    <title>Record & Play</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+            padding-top: 100px;
+            background: linear-gradient(135deg, #e6f0ff, #d6ecff);
+            color: #0b2545;
+        }
+        #navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(135deg, #e6f0ff, #d6ecff);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            z-index: 10000;
+        }
+        #navbar a {
+            font-weight: bold;
+            color: #154c79;
+            margin-right: 20px;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        #navbar a:hover {
+            text-decoration: underline;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1.5px solid #aad4ff;
+        }
+        button {
+            padding: 10px 16px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button.primary {
+            background-color: #154c79;
+            color: white;
+        }
+        button.secondary {
+            background-color: #f48225;
+            color: white;
+        }
+        #savedTestsList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+            width: fit-content; /* מתאים את הרוחב לתוכן */
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+            background-color: #f9faff;
+        }
+        #savedTestsList h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .test-entry {
+            padding: 8px 12px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .test-entry span {
+            font-weight: 500;
+            color: #2c3e50;
+            flex-grow: 1;
+        }
+        .test-icon-btn {
+            background-color: #fdd;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .test-icon-btn.run {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        #loaderIcon {
+            display: none;
+            width: 24px;
+            margin-top: 20px;
+        }
+        #deleteModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+        #logoImage {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;     /* Increased from 100px */
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
 
-    #deleteModalContent {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      width: 300px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    #deleteModalContent button {
-      margin: 10px 5px 0;
-    }
-  </style>
+        #deleteModalContent {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        #deleteModalContent button {
+            margin: 10px 5px 0;
+        }
+    </style>
 </head>
 <body>
 <div id="navbar">
-  <div class="nav-left">
-    <a href="index.html">Test Runner</a>
-    <a href="saved-tests.html">Saved Tests</a>
-    <a href="record.html">Record & Play</a>
-  </div>
-  <img id="logoImage" src="iconFiles/LogoIcon.jpg" alt="Logo" />
+    <div class="nav-left">
+        <a href="index.html">Test Runner</a>
+        <a href="saved-tests.html">Saved Tests</a>
+        <a href="record.html">Record & Play</a>
+    </div>
+    <img id="logoImage" src="iconFiles/LogoIcon.jpg" alt="Logo" />
 </div>
 
+    <h2>📹 Record & Play</h2>
 
+    <label for="runApp">Running App Name</label>
+    <input type="text" id="runApp" placeholder="e.g., chrome" />
 
-  <h2>📹 Record & Play</h2>
+    <label for="recordName">Recording Case Name</label>
+    <input type="text" id="recordName" placeholder="e.g., chrome4" />
 
-  <label for="runApp">Running App Name</label>
-  <input type="text" id="runApp" placeholder="e.g., chrome" />
-
-  <label for="recordName">Recording Case Name</label>
-  <input type="text" id="recordName" placeholder="e.g., chrome4" />
-
-  <div>
-    <button id="startBtn" class="primary" onclick="startRecording()">Start Recording</button>
-    <button id="stopBtn" class="secondary" onclick="stopRecording()" disabled>Stop Recording</button>
-    <button id="saveRecordingBtn" class="primary" onclick="saveRecordingLocally()" style="display: none; margin-left: 10px;">💾 Save Test</button>
-  </div>
-
-  <img id="loaderIcon" src="" alt="Status" />
-
-  <div id="savedTestsList"></div>
-
-  <div id="deleteModal">
-    <div id="deleteModalContent">
-      <p id="deleteModalText">Are you sure you want to delete this test?</p>
-      <button onclick="confirmDelete()">Delete</button>
-      <button onclick="cancelDelete()">Cancel</button>
+    <div>
+        <button id="startBtn" class="primary" onclick="startRecording()">Start Recording</button>
+        <button id="stopBtn" class="secondary" onclick="stopRecording()" disabled>Stop Recording</button>
+        <button id="saveRecordingBtn" class="primary" onclick="saveRecordingLocally()" style="display: none; margin-left: 10px;">💾 Save Test</button>
     </div>
-  </div>
 
-  <script>
-    let recordData = null;
-    let savedTests = [];
-    let deleteIndex = null;
+    <img id="loaderIcon" src="" alt="Status" />
 
-    function setLoaderIcon(state) {
-      const icon = document.getElementById("loaderIcon");
-      icon.style.display = "inline-block";
-      if (state === "loading") icon.src = "iconFiles/gif_runingSpinner.gif";
-      else if (state === "success") icon.src = "iconFiles/v_completeIcon.jpg";
-      else if (state === "error") icon.src = "iconFiles/filedIcon.png";
-    }
+    <div id="savedTestsList">
+        <h3>Saved Tests</h3>
+    </div>
 
-    window.onload = () => {
-      const saved = localStorage.getItem("savedTests");
-      if (saved) {
-        savedTests = JSON.parse(saved);
-        renderSavedTests();
-      }
-    };
+    <div id="deleteModal">
+        <div id="deleteModalContent">
+            <p id="deleteModalText">Are you sure you want to delete this test?</p>
+            <button onclick="confirmDelete()">Delete</button>
+            <button onclick="cancelDelete()">Cancel</button>
+        </div>
+    </div>
 
-    function startRecording() {
-      const runApp = document.getElementById('runApp').value.trim();
-      const recordName = document.getElementById('recordName').value.trim();
-      if (!runApp || !recordName) return alert("⚠️ Please enter both values.");
+    <script>
+        let recordData = null;
+        let savedTests = [];
+        let deleteIndex = null;
+        let isRecording = false; // מצב האם ההקלטה פעילה
 
-      recordData = { runingApp: runApp, RecordFileName: recordName };
+        function setLoaderIcon(state) {
+            const icon = document.getElementById("loaderIcon");
+            if (state === "loading") {
+                icon.src = "iconFiles/gif_runingSpinner.gif";
+                icon.style.display = "inline-block";
+            } else if (state === "success") {
+                icon.src = "iconFiles/v_completeIcon.jpg";
+                icon.style.display = "inline-block";
+            } else if (state === "error") {
+                icon.src = "iconFiles/filedIcon.png";
+                icon.style.display = "inline-block";
+            } else {
+                icon.style.display = "none"; // הסתרת האייקון
+            }
+        }
 
-      setLoaderIcon("loading");
-      document.getElementById("startBtn").disabled = true;
-      document.getElementById("stopBtn").disabled = false;
-      document.getElementById("saveRecordingBtn").style.display = "none";
+        window.onload = () => {
+            const saved = localStorage.getItem("savedTests");
+            if (saved) {
+                savedTests = JSON.parse(saved);
+                renderSavedTests();
+            }
+        };
 
-      fetch("https://localhost:7012/api/StartRecording/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(recordData)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed");
-        return res.text();
-      })
-      .then(msg => {
-        alert("✅ " + msg);
-        setLoaderIcon("success");
-      })
-      .catch(err => {
-        alert("❌ " + err.message);
-        setLoaderIcon("error");
-      });
-    }
+        function startRecording() {
+            const runApp = document.getElementById('runApp').value.trim();
+            const recordName = document.getElementById('recordName').value.trim();
+            if (!runApp || !recordName) return alert("⚠️ Please enter both values.");
 
-    function stopRecording() {
-      if (!recordData) return;
-      setLoaderIcon("loading");
+            recordData = { runingApp: runApp, RecordFileName: recordName };
+            isRecording = true; // עדכון מצב ההקלטה
 
-      fetch("https://localhost:7012/api/StopRecording/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(recordData)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed");
-        return res.text();
-      })
-      .then(msg => {
-        alert("✅ " + msg);
-        setLoaderIcon("success");
-      })
-      .catch(err => {
-        alert("❌ " + err.message);
-        setLoaderIcon("error");
-      })
-      .finally(() => {
-        document.getElementById("startBtn").disabled = false;
-        document.getElementById("stopBtn").disabled = true;
-        document.getElementById("saveRecordingBtn").style.display = "inline-block";
-      });
-    }
+            setLoaderIcon("loading");
+            document.getElementById("startBtn").disabled = true;
+            document.getElementById("stopBtn").disabled = false;
+            document.getElementById("saveRecordingBtn").style.display = "none";
 
-    function saveRecordingLocally() {
-      if (!recordData) return;
-      savedTests.push({...recordData});
-      localStorage.setItem("savedTests", JSON.stringify(savedTests));
-      renderSavedTests();
-      document.getElementById("saveRecordingBtn").style.display = "none";
-      alert("💾 Test saved.");
-    }
+            fetch("https://localhost:7012/api/StartRecording/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(recordData)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to start recording.");
+                return res.text();
+            })
+            .then(msg => {
+                alert("✅ " + msg);
+                // הגיף יישאר עד שתתקבל תגובה מ-stopRecording
+            })
+            .catch(err => {
+                alert("❌ " + err.message);
+                setLoaderIcon("error");
+                document.getElementById("startBtn").disabled = false;
+                document.getElementById("stopBtn").disabled = true;
+                isRecording = false;
+            });
+        }
 
-    function renderSavedTests() {
-      const container = document.getElementById("savedTestsList");
-      container.innerHTML = "<h3>Saved Tests</h3>";
-      savedTests.forEach((test, index) => {
-        const div = document.createElement("div");
-        div.className = "test-entry";
-        div.innerHTML = `
-          <span>${test.RecordFileName} (${test.runingApp})</span>
-          <button class="test-icon-btn run" onclick="runTest(${index})">▶</button>
-          <button class="test-icon-btn" onclick="promptDelete(${index})">✖</button>
-        `;
-        container.appendChild(div);
-      });
-    }
+        function stopRecording() {
+            if (!recordData || !isRecording) return; // בדיקה אם ההקלטה פעילה
+            setLoaderIcon("loading"); // הגיף כבר מוצג, נשאיר אותו
 
-    function runTest(index) {
-      const test = savedTests[index];
-      setLoaderIcon("loading");
+            fetch("https://localhost:7012/api/StopRecording/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(recordData)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to stop recording.");
+                return res.text();
+            })
+            .then(msg => {
+                alert("✅ " + msg);
+                setLoaderIcon("success");
+            })
+            .catch(err => {
+                alert("❌ " + err.message);
+                setLoaderIcon("error");
+            })
+            .finally(() => {
+                document.getElementById("startBtn").disabled = false;
+                document.getElementById("stopBtn").disabled = true;
+                document.getElementById("saveRecordingBtn").style.display = "inline-block";
+                isRecording = false; // עדכון מצב ההקלטה
+            });
+        }
 
-      fetch("https://localhost:7012/api/RunRecordFile/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(test)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed");
-        return res.text();
-      })
-      .then(msg => {
-        alert("🚀 " + msg);
-        setLoaderIcon("success");
-      })
-      .catch(err => {
-        alert("❌ " + err.message);
-        setLoaderIcon("error");
-      });
-    }
+        function saveRecordingLocally() {
+            if (!recordData) return;
+            savedTests.push({...recordData});
+            localStorage.setItem("savedTests", JSON.stringify(savedTests));
+            renderSavedTests();
+            document.getElementById("saveRecordingBtn").style.display = "none";
+            alert("💾 Test saved.");
+        }
 
-    function promptDelete(index) {
-      deleteIndex = index;
-      const test = savedTests[index];
-      document.getElementById("deleteModalText").textContent = `Are you sure you want to delete "${test.RecordFileName}"?`;
-      document.getElementById("deleteModal").style.display = "flex";
-    }
+        function renderSavedTests() {
+            const container = document.getElementById("savedTestsList");
+            container.innerHTML = "<h3>Saved Tests</h3>";
+            savedTests.forEach((test, index) => {
+                const div = document.createElement("div");
+                div.className = "test-entry";
+                div.innerHTML = `
+                    <span>${test.RecordFileName} (${test.runingApp})</span>
+                    <button class="test-icon-btn run" onclick="runTest(${index})">▶</button>
+                    <button class="test-icon-btn" onclick="promptDelete(${index})">✖</button>
+                `;
+                container.appendChild(div);
+            });
+        }
 
-    function confirmDelete() {
-      if (deleteIndex !== null) {
-        savedTests.splice(deleteIndex, 1);
-        localStorage.setItem("savedTests", JSON.stringify(savedTests));
-        renderSavedTests();
-        deleteIndex = null;
-      }
-      document.getElementById("deleteModal").style.display = "none";
-    }
+        function runTest(index) {
+            const test = savedTests[index];
+            setLoaderIcon("loading");
 
-    function cancelDelete() {
-      deleteIndex = null;
-      document.getElementById("deleteModal").style.display = "none";
-    }
-  </script>
+            fetch("https://localhost:7012/api/RunRecordFile/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(test)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to run test.");
+                return res.text();
+            })
+            .then(msg => {
+                alert("🚀 " + msg);
+                setLoaderIcon("success");
+            })
+            .catch(err => {
+                alert("❌ " + err.message);
+                setLoaderIcon("error");
+            });
+        }
+
+        function promptDelete(index) {
+            deleteIndex = index;
+            const test = savedTests[index];
+            document.getElementById("deleteModalText").textContent = `Are you sure you want to delete "${test.RecordFileName}"?`;
+            document.getElementById("deleteModal").style.display = "flex";
+        }
+
+        function confirmDelete() {
+            if (deleteIndex !== null) {
+                savedTests.splice(deleteIndex, 1);
+                localStorage.setItem("savedTests", JSON.stringify(savedTests));
+                renderSavedTests();
+                deleteIndex = null;
+            }
+            document.getElementById("deleteModal").style.display = "none";
+        }
+
+        function cancelDelete() {
+            deleteIndex = null;
+            document.getElementById("deleteModal").style.display = "none";
+        }
+    </script>
 </body>
 </html>
