@@ -120,7 +120,18 @@
             width: 24px;
             margin-top: 20px;
         }
-        #deleteModal {
+ 
+        #logoImage {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;     /* Increased from 100px */
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+      #deleteModal {
             display: none;
             position: fixed;
             top: 0;
@@ -131,15 +142,6 @@
             justify-content: center;
             align-items: center;
             z-index: 10001;
-        }
-        #logoImage {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 320px;     /* Increased from 100px */
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         #deleteModalContent {
@@ -152,6 +154,25 @@
         }
         #deleteModalContent button {
             margin: 10px 5px 0;
+            padding: 8px 12px; /* מומלץ להוסיף ריפוד לנוחות */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+            #deleteModalContent > button:first-child { /* סלקטור יותר ספציפי */
+            background-color: #e74c3c !important; /* צבע אדום - !important כדי לוודא שהוא דורס */
+            color: white !important;
+        }
+        #deleteButton {
+            background-color: #e74c3c !important; /* צבע אדום */
+            color: white !important;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px 0; /* שמור על המאפיינים הקודמים */
         }
     </style>
 </head>
@@ -188,7 +209,7 @@
     <div id="deleteModal">
         <div id="deleteModalContent">
             <p id="deleteModalText">Are you sure you want to delete this test?</p>
-            <button onclick="confirmDelete()">Delete</button>
+            <button id="deleteButton" onclick="confirmDelete()">Delete</button>
             <button onclick="cancelDelete()">Cancel</button>
         </div>
     </div>
@@ -356,5 +377,6 @@
             document.getElementById("deleteModal").style.display = "none";
         }
     </script>
+    
 </body>
 </html>
