@@ -121,15 +121,15 @@
             margin-top: 20px;
         }
  
-        #logoImage {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 320px;     /* Increased from 100px */
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+       #logoImage {
+  position: absolute;
+  top: 20px;
+  right: 100px;
+  width: 320px;     /* Increased from 100px */
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
       #deleteModal {
             display: none;
@@ -267,11 +267,11 @@
                 return res.text();
             })
             .then(msg => {
-                alert("✅ " + msg);
+              //  alert("✅ " + msg);
                 // הגיף יישאר עד שתתקבל תגובה מ-stopRecording
             })
             .catch(err => {
-                alert("❌ " + err.message);
+              //  alert("❌ " + err.message);
                 setLoaderIcon("error");
                 document.getElementById("startBtn").disabled = false;
                 document.getElementById("stopBtn").disabled = true;
@@ -293,11 +293,11 @@
                 return res.text();
             })
             .then(msg => {
-                alert("✅ " + msg);
+              //  alert("✅ " + msg);
                 setLoaderIcon("success");
             })
             .catch(err => {
-                alert("❌ " + err.message);
+              //  alert("❌ " + err.message);
                 setLoaderIcon("error");
             })
             .finally(() => {
@@ -314,7 +314,7 @@
             localStorage.setItem("savedTests", JSON.stringify(savedTests));
             renderSavedTests();
             document.getElementById("saveRecordingBtn").style.display = "none";
-            alert("💾 Test saved.");
+            alert(`💾 Test "${recordData.RecordFileName}" saved successfully.`);
         }
 
         function renderSavedTests() {
@@ -346,11 +346,11 @@
                 return res.text();
             })
             .then(msg => {
-                alert("🚀 " + msg);
+              //  alert("🚀 " + msg);
                 setLoaderIcon("success");
             })
             .catch(err => {
-                alert("❌ " + err.message);
+             //   alert("❌ " + err.message);
                 setLoaderIcon("error");
             });
         }

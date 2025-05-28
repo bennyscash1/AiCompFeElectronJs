@@ -13,7 +13,7 @@
 #logoImage {
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 100px;
   width: 320px;     /* Increased from 100px */
   height: auto;
   border-radius: 8px;
@@ -188,6 +188,20 @@ button.danger:hover {
   .test-step, .task-block {
     margin-bottom: 12px;
   }
+  .add-url-btn {
+  background-color: #4a90e2; /* כחול חלש */
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-url-btn:hover {
+  background-color: #357ABD;
+}
+
 
 </style>
 
@@ -195,7 +209,7 @@ button.danger:hover {
 <div id="navbar">
   <div class="nav-left">
     <a href="index.html">Test Runner</a>
-    <a href="saved-tests.html">Saved Tests</a>
+    <a href="saved-tests.html">Saved Ai Tests</a>
     <a href="record.html">Record & Play</a>
   </div>
   <img src="iconFiles/LogoIcon.jpg" id="logoImage" alt="Logo" />
@@ -203,11 +217,15 @@ button.danger:hover {
 
 
   <h2 id="pageTitle">AI Automation Runner</h2>
-  <div id="pageMode" class="page-context">New test mode</div>
 
   <label for="appName">App Name:</label>
   <input type="text" id="appName" placeholder="e.g., Chrome" />
   <button class="secondary" onclick="getDeviceAndAppInfo()">Get Device ID & App Name</button>
+
+  <button class="add-url-btn" onclick="addUrlField()">Add URL</button>
+  <div id="urlFieldContainer" style="margin-top: 10px;"></div>
+
+
 
   <div class="section">
     <h3>AI Task Instructions</h3>
@@ -331,29 +349,73 @@ button.danger:hover {
     }
 
     function collectTestData() {
-      const appName = document.getElementById('appName').value;
-      const tasks = [];
-      for (let i = 0; i < taskCount; i++) {
-        const el = document.getElementById(`task_${i}`);
-        if (el && el.value) tasks.push({ TaskStep: el.value });
-      }
-      const steps = [];
-      for (let i = 0; i < stepCount; i++) {
-        const typeEl = document.getElementById(`type_${i}`);
-        const viewEl = document.getElementById(`step_${i}`);
-        const inputEl = document.getElementById(`input_${i}`);
-        if (typeEl && viewEl && viewEl.value) {
-          const step = { ElementView: viewEl.value };
-          if (typeEl.value === "Input") step.InputText = inputEl.value;
-          steps.push(step);
-        }
-      }
-      return {
-        RuningApp: appName,
-        AiTasksList: tasks,
-        TestInputSteps: steps
-      };
+  const appName = document.getElementById('appName').value;
+  const urlInput = document.getElementById('urlForChrome');
+  const chromeUrl = urlInput ? urlInput.value.trim() : "";
+
+  const tasks = [];
+  for (let i = 0; i < taskCount; i++) {
+    const el = document.getElementById(`task_${i}`);
+    if (el && el.value) tasks.push({ TaskStep: el.value });
+  }
+
+  const steps = [];
+  for (let i = 0; i < stepCount; i++) {
+    const typeEl = document.getElementById(`type_${i}`);
+    const viewEl = document.getElementById(`step_${i}`);
+    const inputEl = document.getElementById(`input_${i}`);
+    if (typeEl && viewEl && viewEl.value) {
+      const step = { ElementView: viewEl.value };
+      if (typeEl.value === "Input") step.InputText = inputEl.value;
+      steps.push(step);
     }
+  }
+
+  return {
+    RuningApp: appName,
+    UrlForChrome: chromeUrl,
+    AiTasksList: tasks,
+    TestInputSteps: steps
+  };
+}
+
+    let urlFieldAdded = false;
+
+function addUrlField() {
+  if (urlFieldAdded) return;
+
+  const container = document.getElementById("urlFieldContainer");
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.alignItems = "baseline"; // ✅ מיישר את הכפתור לגובה השדה
+  wrapper.style.gap = "10px";
+  wrapper.style.marginBottom = "10px";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = "urlForChrome";
+  input.placeholder = "Enter URL for Chrome navigation";
+  input.style.flex = "1";
+
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "Remove";
+  removeBtn.className = "danger";
+  removeBtn.style.marginTop = "2px"; // ✅ אופציונלי לדייק עוד יותר
+  removeBtn.onclick = () => {
+    wrapper.remove();
+    urlFieldAdded = false;
+  };
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(removeBtn);
+  container.appendChild(wrapper);
+
+  urlFieldAdded = true;
+}
+
+
+
 const active = document.activeElement;
   function submitAll() {
   const runBtn = document.getElementById('runButton');
