@@ -7,41 +7,65 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       padding: 40px;
+      padding-top: 100px; /* Space for fixed navbar */
       background: linear-gradient(135deg, #e6f0ff, #d6ecff);
       color: #0b2545;
     }
-#logoImage {
-  position: absolute;
-  top: 20px;
-  right: 100px;
-  width: 320px;     /* Increased from 100px */
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
+    #logoImage {
+      position: absolute;
+      top: 20px;
+      right: 100px;
+      width: 320px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    #navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: linear-gradient(135deg, #e6f0ff, #d6ecff);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      z-index: 10000;
+    }
+    #navbar a {
+      font-weight: bold;
+      color: #154c79;
+      margin-right: 20px;
+      font-size: 16px;
+      text-decoration: none;
+    }
+    #navbar a:hover {
+      text-decoration: underline;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+    }
     a {
       text-decoration: none;
       margin-right: 20px;
       font-weight: 600;
       color: #154c79;
     }
-
     a:hover {
       text-decoration: underline;
     }
-
     h2 {
       font-size: 28px;
       margin-bottom: 25px;
     }
-
     label {
       font-weight: 500;
       margin-bottom: 6px;
       display: block;
     }
-
     input[type="text"], select, textarea {
       width: 100%;
       max-width: 450px;
@@ -51,11 +75,9 @@
       border-radius: 8px;
       margin-bottom: 15px;
     }
-
     textarea {
       resize: vertical;
     }
-
     .section {
       background: white;
       padding: 20px;
@@ -63,7 +85,6 @@
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-
     button {
       font-size: 14px;
       padding: 10px 16px;
@@ -73,54 +94,65 @@
       margin-right: 10px;
       margin-top: 8px;
     }
-
     button.primary {
       background-color: #154c79;
       color: white;
     }
-
     button.secondary {
       background-color: #f48225;
       color: white;
     }
-
     button.danger {
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
-
     button.danger:hover {
       background-color: #f1b0b7;
     }
-
     .flex-row {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-
     #statusIcons img {
       margin-top: 15px;
       border-radius: 6px;
     }
+    .add-url-btn {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .add-url-btn:hover {
+      background-color: #357ABD;
+    }
   </style>
-
-
-  </head>
-<div id="navbar">
-  <div class="nav-left">
-    <a href="index.html">Test Runner</a>
-    <a href="saved-tests.html">Saved Tests</a>
-    <a href="record.html">Record & Play</a>
+</head>
+<body>
+  <div id="navbar">
+    <div class="nav-left">
+      <a href="index.html">Test Runner</a>
+      <a href="saved-tests.html">Saved Tests</a>
+      <a href="record.html">Record & Play</a>
+    </div>
+    <img src="iconFiles/LogoIcon.jpg" id="logoImage" alt="Logo" />
   </div>
-  <img src="iconFiles/LogoIcon.jpg" id="logoImage" alt="Logo" />
-</div>
 
   <h2>Edit Test</h2>
 
   <label for="appName">App Name:</label>
   <input type="text" id="appName" />
+
+  <button class="add-url-btn" onclick="addUrlField()">Add URL</button>
+  <div id="urlFieldContainer" style="margin-top: 10px;"></div>
+
+  <label for="anthropicKey">Anthropic Key:</label>
+  <input type="text" id="anthropicKey" placeholder="Enter Anthropic API Key (if required)" />
 
   <div class="section">
     <h3>AI Task Instructions</h3>
@@ -141,17 +173,16 @@
     <div id="statusIcons">
       <img id="loadingSpinner" src="iconFiles/gif_runingSpinner.gif" style="display:none; width:40px;" />
       <img id="successIcon" src="iconFiles/v_completeIcon.jpg" style="display:none; width:40px;" />
+      <img id="failureIcon" src="iconFiles/filedIcon.png" style="display:none; width:40px;" />
     </div>
     <pre id="jsonPreview"></pre>
   </div>
-
-
-
 
   <script>
     let taskCount = 0;
     let stepCount = 0;
     let controller;
+    let urlFieldAdded = false;
 
     function addTask(value = "") {
       const container = document.getElementById('taskContainer');
@@ -192,6 +223,40 @@
       inputEl.style.display = (type === "Input") ? "inline-block" : "none";
     }
 
+    function addUrlField(urlValue = "") {
+      if (urlFieldAdded) return;
+
+      const container = document.getElementById("urlFieldContainer");
+
+      const wrapper = document.createElement("div");
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "baseline";
+      wrapper.style.gap = "10px";
+      wrapper.style.marginBottom = "10px";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = "urlForChrome";
+      input.placeholder = "Enter URL for Chrome navigation";
+      input.style.flex = "1";
+      if (urlValue) input.value = urlValue;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove";
+      removeBtn.className = "danger";
+      removeBtn.style.marginTop = "2px";
+      removeBtn.onclick = () => {
+        wrapper.remove();
+        urlFieldAdded = false;
+      };
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(removeBtn);
+      container.appendChild(wrapper);
+
+      urlFieldAdded = true;
+    }
+
     function removeElement(id) {
       const el = document.getElementById(id);
       if (el) el.remove();
@@ -207,6 +272,10 @@
       try {
         const data = JSON.parse(raw);
         document.getElementById("appName").value = data.RuningApp || "";
+        document.getElementById("anthropicKey").value = data.AnthropicKey || "";
+        if (data.UrlForChrome) {
+          addUrlField(data.UrlForChrome);
+        }
 
         if (Array.isArray(data.AiTasksList)) {
           data.AiTasksList.forEach(task => addTask(task.TaskStep));
@@ -229,6 +298,9 @@
       if (!name) return alert("❌ No test name to update.");
 
       const appName = document.getElementById('appName').value;
+      const urlInput = document.getElementById('urlForChrome');
+      const chromeUrl = urlInput ? urlInput.value.trim() : "";
+      const anthropicKey = document.getElementById('anthropicKey').value.trim();
       const tasks = [];
       for (let i = 0; i < taskCount; i++) {
         const el = document.getElementById(`task_${i}`);
@@ -247,6 +319,8 @@
       }
       const finalData = {
         RuningApp: appName,
+        UrlForChrome: chromeUrl,
+        AnthropicKey: anthropicKey,
         AiTasksList: tasks,
         TestInputSteps: steps
       };
@@ -254,70 +328,77 @@
       alert("✅ Test updated.");
     }
 
-function runTest() {
-  const appName = document.getElementById('appName').value;
-  const tasks = [];
-  for (let i = 0; i < taskCount; i++) {
-    const el = document.getElementById(`task_${i}`);
-    if (el && el.value) tasks.push({ TaskStep: el.value });
-  }
-  const steps = [];
-  for (let i = 0; i < stepCount; i++) {
-    const typeEl = document.getElementById(`type_${i}`);
-    const viewEl = document.getElementById(`step_${i}`);
-    const inputEl = document.getElementById(`input_${i}`);
-    if (typeEl && viewEl && viewEl.value) {
-      const step = { ElementView: viewEl.value };
-      if (typeEl.value === "Input") step.InputText = inputEl.value;
-      steps.push(step);
-    }
-  }
-
-  const finalData = {
-    RuningApp: appName,
-    AiTasksList: tasks,
-    TestInputSteps: steps
-  };
-
-  controller = new AbortController();
-  document.getElementById("runBtn").style.display = "none";
-  document.getElementById("cancelBtn").style.display = "inline-block";
-  document.getElementById("loadingSpinner").style.display = "inline-block";
-  document.getElementById("successIcon").style.display = "none";
-
-  fetch("http://localhost:5109/api/AiTaskSteps/run", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(finalData),
-    signal: controller.signal
-  })
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById("successIcon").style.display = "inline-block";
-      console.log("✅ Response:", text);
-    })
-    .catch(err => {
-      if (err.name === "AbortError") {
-        alert("❌ Request cancelled.");
-      } else {
-        console.error("❌ Error:", err.message);
+    function runTest() {
+      const appName = document.getElementById('appName').value;
+      const urlInput = document.getElementById('urlForChrome');
+      const chromeUrl = urlInput ? urlInput.value.trim() : "";
+      const anthropicKey = document.getElementById('anthropicKey').value.trim();
+      const tasks = [];
+      for (let i = 0; i < taskCount; i++) {
+        const el = document.getElementById(`task_${i}`);
+        if (el && el.value) tasks.push({ TaskStep: el.value });
       }
-    })
-    .finally(() => {
-      document.getElementById("runBtn").style.display = "inline-block";
-      document.getElementById("cancelBtn").style.display = "none";
-      document.getElementById("loadingSpinner").style.display = "none";
-      document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
-    });
-}
+      const steps = [];
+      for (let i = 0; i < stepCount; i++) {
+        const typeEl = document.getElementById(`type_${i}`);
+        const viewEl = document.getElementById(`step_${i}`);
+        const inputEl = document.getElementById(`input_${i}`);
+        if (typeEl && viewEl && viewEl.value) {
+          const step = { ElementView: viewEl.value };
+          if (typeEl.value === "Input") step.InputText = inputEl.value;
+          steps.push(step);
+        }
+      }
 
+      const finalData = {
+        RuningApp: appName,
+        UrlForChrome: chromeUrl,
+        AnthropicKey: anthropicKey,
+        AiTasksList: tasks,
+        TestInputSteps: steps
+      };
 
-  function cancelRun() {
-    if (controller) {
-      controller.abort();
+      controller = new AbortController();
+      document.getElementById("runBtn").style.display = "none";
+      document.getElementById("cancelBtn").style.display = "inline-block";
+      document.getElementById("loadingSpinner").style.display = "inline-block";
+      document.getElementById("successIcon").style.display = "none";
+      document.getElementById("failureIcon").style.display = "none";
+
+      fetch("http://localhost:5109/api/AiTaskSteps/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalData),
+        signal: controller.signal
+      })
+        .then(res => {
+          if (!res.ok) throw new Error(`API failed with status ${res.status}`);
+          return res.text();
+        })
+        .then(text => {
+          document.getElementById("successIcon").style.display = "inline-block";
+          document.getElementById("jsonPreview").style.display = "block";
+          document.getElementById("jsonPreview").textContent = text;
+        })
+        .catch(err => {
+          document.getElementById("failureIcon").style.display = "inline-block";
+          document.getElementById("jsonPreview").style.display = "block";
+          document.getElementById("jsonPreview").textContent = "❌ API call failed:\n" + err.message;
+        })
+        .finally(() => {
+          document.getElementById("runBtn").style.display = "inline-block";
+          document.getElementById("cancelBtn").style.display = "none";
+          document.getElementById("loadingSpinner").style.display = "none";
+        });
+
+      document.getElementById("jsonPreview").textContent = JSON.stringify(finalData, null, 2);
     }
-  }
 
+    function cancelRun() {
+      if (controller) {
+        controller.abort();
+      }
+    }
 
     window.onload = loadTestFromUrl;
   </script>

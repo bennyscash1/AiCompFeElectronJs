@@ -225,6 +225,8 @@ button.danger:hover {
   <button class="add-url-btn" onclick="addUrlField()">Add URL</button>
   <div id="urlFieldContainer" style="margin-top: 10px;"></div>
 
+<label for="anthropicKey">Anthropic Key:</label>
+<input type="text" id="anthropicKey" placeholder="Enter Anthropic API Key (if required)" />
 
 
   <div class="section">
@@ -276,7 +278,7 @@ button.danger:hover {
       document.getElementById("saveModal").style.display = "none";
     }
 
-    function confirmSave() {
+   function confirmSave() {
       const testName = document.getElementById("saveTestName").value.trim();
       if (!testName) {
         alert("⚠️ Please enter a test name.");
@@ -288,7 +290,6 @@ button.danger:hover {
       alert(`✅ Test saved as "${testName}"`);
       closeSaveModal();
     }
-
     function addTask() {
       const container = document.getElementById('taskContainer');
       const id = `task_${taskCount++}`;
@@ -348,10 +349,11 @@ button.danger:hover {
       if (el) el.remove();
     }
 
-    function collectTestData() {
+   function collectTestData() {
   const appName = document.getElementById('appName').value;
   const urlInput = document.getElementById('urlForChrome');
   const chromeUrl = urlInput ? urlInput.value.trim() : "";
+  const anthropicKey = document.getElementById('anthropicKey').value.trim();
 
   const tasks = [];
   for (let i = 0; i < taskCount; i++) {
@@ -374,12 +376,14 @@ button.danger:hover {
   return {
     RuningApp: appName,
     UrlForChrome: chromeUrl,
+    AnthropicKey: anthropicKey,
     AiTasksList: tasks,
     TestInputSteps: steps
   };
 }
 
     let urlFieldAdded = false;
+
 
 function addUrlField() {
   if (urlFieldAdded) return;
@@ -388,7 +392,7 @@ function addUrlField() {
 
   const wrapper = document.createElement("div");
   wrapper.style.display = "flex";
-  wrapper.style.alignItems = "baseline"; // ✅ מיישר את הכפתור לגובה השדה
+  wrapper.style.alignItems = "baseline";
   wrapper.style.gap = "10px";
   wrapper.style.marginBottom = "10px";
 
@@ -401,7 +405,7 @@ function addUrlField() {
   const removeBtn = document.createElement("button");
   removeBtn.textContent = "Remove";
   removeBtn.className = "danger";
-  removeBtn.style.marginTop = "2px"; // ✅ אופציונלי לדייק עוד יותר
+  removeBtn.style.marginTop = "2px";
   removeBtn.onclick = () => {
     wrapper.remove();
     urlFieldAdded = false;
@@ -417,7 +421,7 @@ function addUrlField() {
 
 
 const active = document.activeElement;
-  function submitAll() {
+ function submitAll() {
   const runBtn = document.getElementById('runButton');
   if (isRunning) {
     controller?.abort();
@@ -431,44 +435,57 @@ const active = document.activeElement;
   document.getElementById('loadingSpinner').style.display = 'inline-block';
   document.getElementById('successIcon').style.display = 'none';
   document.getElementById('failureIcon').style.display = 'none';
-
+  document.getElementById('jsonPreview').style.display = 'none'; // הסתרה ראשונית
 
   // Allow UI to update before proceeding
   setTimeout(() => {
     const finalData = collectTestData();
+    const noTasks = !finalData.AiTasksList || finalData.AiTasksList.length === 0;
+    const noSteps = !finalData.TestInputSteps || finalData.TestInputSteps.length === 0;
+
+    if (noTasks && noSteps) {
+      alert("⚠️ Please add at least one AI Task or Input Step before running.");
+      isRunning = false;
+      runBtn.textContent = "Run";
+      document.getElementById('loadingSpinner').style.display = 'none';
+      document.getElementById('jsonPreview').textContent = "";
+      document.getElementById('jsonPreview').style.display = 'none';
+      return;
+    }
+
     controller = new AbortController();
 
-   fetch("http://localhost:5109/api/AiTaskSteps/run", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(finalData),
-  signal: controller.signal
-})
-.then(async res => {
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`API failed with status ${res.status}\n\n${text}`);
-  }
-  alert("✅ Response:\n" + text);
-  document.getElementById('successIcon').style.display = 'inline-block';
-})
-.catch(err => {
-  alert("❌ Error: " + err.message);
-  document.getElementById('failureIcon').style.display = 'inline-block';
-})
-.finally(() => {
-  if (active && typeof active.focus === 'function') active.focus();
-  document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
-  isRunning = false;
-  runBtn.textContent = "Run";
-  document.getElementById('loadingSpinner').style.display = 'none';
-});
+    fetch("http://localhost:5109/api/AiTaskSteps/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(finalData),
+      signal: controller.signal
+    })
+    .then(async res => {
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(`API failed with status ${res.status}\n\n${text}`);
+      }
+      document.getElementById('jsonPreview').style.display = 'block';
+      document.getElementById('jsonPreview').textContent = text;
+      document.getElementById('successIcon').style.display = 'inline-block';
+    })
+    .catch(err => {
+    document.getElementById('failureIcon').style.display = 'inline-block';
+    document.getElementById('jsonPreview').style.display = 'block';
+    document.getElementById('jsonPreview').textContent = "❌ API call failed:\n" + err.message;
+    })
+    .finally(() => {
+      isRunning = false;
+      runBtn.textContent = "Run";
+      document.getElementById('loadingSpinner').style.display = 'none';
+    });
 
-
-
+    // הצגה של המידע המבוקש (למקרה של בדיקה מקומית)
     document.getElementById('jsonPreview').textContent = JSON.stringify(finalData, null, 2);
-  }, 100); // This short delay allows the UI to update before blocking begins
+  }, 100); // מאפשר UI להתעדכן לפני הריצה
 }
+
 
 
     function saveChanges() {
@@ -493,6 +510,8 @@ const active = document.activeElement;
       try {
         const data = JSON.parse(raw);
         document.getElementById("appName").value = data.RuningApp || "";
+        document.getElementById("anthropicKey").value = data.AnthropicKey || "";
+
         const header = document.getElementById("pageTitle");
         if (header) header.textContent = `Editing Test: ${testName}`;
         const saveBtn = document.getElementById("saveTestBtn");
@@ -543,8 +562,9 @@ const active = document.activeElement;
         }
       })
       .catch(err => {
-        alert("❌ Error: " + err.message);
-      });
+      document.getElementById('failureIcon').style.display = 'inline-block';
+      document.getElementById('jsonPreview').style.display = 'block';
+      document.getElementById('jsonPreview').textContent = "❌ API call failed:\n" + err.message;      });
   }
 
   </script>

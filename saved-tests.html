@@ -44,15 +44,15 @@
       align-items: center;
     }
 
- #logoImage {
-  position: absolute;
-  top: 20px;
-  right: 100px;
-  width: 320px;     /* Increased from 100px */
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+    #logoImage {
+      position: absolute;
+      top: 20px;
+      right: 100px;
+      width: 320px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
 
     h2 {
       font-size: 28px;
@@ -94,10 +94,15 @@
       font-size: 16px;
       color: #555;
     }
+
+    .test-details {
+      font-size: 14px;
+      color: #555;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
-
   <div id="navbar">
     <div class="nav-left">
       <a href="index.html">Test Runner</a>
@@ -121,6 +126,16 @@
         const key = localStorage.key(i);
         if (key.startsWith("test_")) {
           const testName = key.replace("test_", "");
+          let anthropicKey = "";
+
+          // Retrieve AnthropicKey from stored test data
+          try {
+            const raw = localStorage.getItem(key);
+            const data = JSON.parse(raw);
+            anthropicKey = data.AnthropicKey || "No key provided";
+          } catch (err) {
+            anthropicKey = "Error loading key";
+          }
 
           const wrapper = document.createElement("div");
           wrapper.className = "test-entry";
@@ -132,6 +147,10 @@
             window.location.href = `edit-test.html?name=${encodeURIComponent(testName)}`;
           };
 
+          const details = document.createElement("span");
+          details.className = "test-details";
+          details.textContent = `Anthropic Key: ${anthropicKey.substring(0, 8)}...`; // Show partial key for brevity
+
           const deleteBtn = document.createElement("button");
           deleteBtn.textContent = "❌";
           deleteBtn.className = "delete-button";
@@ -139,10 +158,14 @@
             if (confirm(`Are you sure you want to delete "${testName}"?`)) {
               localStorage.removeItem(key);
               wrapper.remove();
+              if (listDiv.childElementCount === 0) {
+                listDiv.innerHTML = "<p class='no-tests'>🔍 No saved tests found.</p>";
+              }
             }
           };
 
           wrapper.appendChild(btn);
+          wrapper.appendChild(details);
           wrapper.appendChild(deleteBtn);
           listDiv.appendChild(wrapper);
         }
