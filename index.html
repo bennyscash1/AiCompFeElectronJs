@@ -226,7 +226,7 @@ button.danger:hover {
   <div id="urlFieldContainer" style="margin-top: 10px;"></div>
 
 <label for="anthropicKey">Anthropic Key:</label>
-<input type="text" id="anthropicKey" placeholder="Enter Anthropic API Key (if required)" />
+<input type="text" id="anthropicKey" placeholder="Enter Anthropic API Key" />
 
 
   <div class="section">
@@ -256,7 +256,7 @@ button.danger:hover {
 
   <div id="saveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:8px; width:300px;">
-      <h3>Save Test</h3>
+      <h3>Save Ai test case</h3>
       <input id="saveTestName" placeholder="Enter test name" style="width:100%; padding:8px;" />
       <div style="margin-top: 10px; text-align:right;">
         <button onclick="closeSaveModal()">Cancel</button>
@@ -345,17 +345,20 @@ button.danger:hover {
     }
 
     function removeElement(id) {
+        console.log("🔍 Trying to remove element with id:", id); // שורת בדיקה
       const el = document.getElementById(id);
       if (el) el.remove();
     }
 
    function collectTestData() {
-  const appName = document.getElementById('appName').value;
-  const urlInput = document.getElementById('urlForChrome');
-  const chromeUrl = urlInput ? urlInput.value.trim() : "";
-  const anthropicKey = document.getElementById('anthropicKey').value.trim();
+   const appName = document.getElementById('appName').value;
+    const urlInput = document.getElementById('urlForChrome');
+   const chromeUrl = urlInput ? urlInput.value.trim() : "";
 
+  const anthropicInput = document.getElementById('anthropicKey');
+  const anthropicKey = anthropicInput ? anthropicInput.value.trim() : "";
   const tasks = [];
+
   for (let i = 0; i < taskCount; i++) {
     const el = document.getElementById(`task_${i}`);
     if (el && el.value) tasks.push({ TaskStep: el.value });
@@ -556,9 +559,10 @@ const active = document.activeElement;
       })
       .then(data => {
         if (data.message) {
-          alert("📱 " + data.message);
+         // alert("📱 " + data.message);
+          document.getElementById('jsonPreview').textContent = "📱 " + data.message;  
         } else {
-          alert("⚠️ No message found in response");
+          document.getElementById('jsonPreview').textContent = "⚠️ No device or any app found";
         }
       })
       .catch(err => {
