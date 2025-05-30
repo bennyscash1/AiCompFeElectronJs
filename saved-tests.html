@@ -127,14 +127,17 @@
         if (key.startsWith("test_")) {
           const testName = key.replace("test_", "");
           let anthropicKey = "";
+          let appName ="";
 
           // Retrieve AnthropicKey from stored test data
           try {
             const raw = localStorage.getItem(key);
             const data = JSON.parse(raw);
             anthropicKey = data.AnthropicKey || "No key provided";
+            appName = data.RuningApp || "No app name";
           } catch (err) {
             anthropicKey = "Error loading key";
+            appName = "Error loading app name";
           }
 
           const wrapper = document.createElement("div");
@@ -149,8 +152,8 @@
 
           const details = document.createElement("span");
           details.className = "test-details";
-          details.textContent = `Anthropic Key: ${anthropicKey.substring(0, 8)}...`; // Show partial key for brevity
-
+         details.textContent = `App name: '${appName}'`;
+          
           const deleteBtn = document.createElement("button");
           deleteBtn.textContent = "❌";
           deleteBtn.className = "delete-button";
