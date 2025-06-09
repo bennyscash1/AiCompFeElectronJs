@@ -1,16 +1,32 @@
 {
   "name": "aicomprehnsiveelectronjs",
   "version": "1.0.0",
+  "description": "AI Test Runner",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Benny",
+  "license": "MIT",
   "devDependencies": {
-    "electron": "^36.2.0"
+    "electron": "^36.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.qshure.aicomprehensive",
+    "productName": "AiTestRunner",
+    "files": [
+      "**/*",
+      "!dist",            
+      "!node_modules/.cache" 
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "iconFiles/icon.ico"
+    }
   }
 }

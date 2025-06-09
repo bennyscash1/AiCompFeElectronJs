@@ -365,7 +365,7 @@
       document.getElementById("successIcon").style.display = "none";
       document.getElementById("failureIcon").style.display = "none";
 
-      fetch("http://localhost:5109/api/AiTaskSteps/run", {
+      fetch("https://localhost:7012/api/AiTaskSteps/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
