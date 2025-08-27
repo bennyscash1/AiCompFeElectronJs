@@ -10,7 +10,7 @@
   "author": "Benny",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^36.2.0",
+    "electron": "^36.7.0",
     "electron-builder": "^26.0.12"
   },
   "build": {
@@ -18,8 +18,8 @@
     "productName": "AiTestRunner",
     "files": [
       "**/*",
-      "!dist",            
-      "!node_modules/.cache" 
+      "!dist",
+      "!node_modules/.cache"
     ],
     "directories": {
       "output": "dist"
